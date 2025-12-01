@@ -1,20 +1,20 @@
-# 1. Image Python légère
 FROM python:3.10-slim
 
-# 2. Dossier de travail
+# 1. Dossier de travail
 WORKDIR /app
 
-# 3. Copier les dépendances
+# 2. Copier les dépendances
 COPY requirements.txt .
 
-# 4. Installer les dépendances
+# 3. Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copier le reste du projet
+# 4. Copier tout le projet
 COPY . .
 
-# 6. Exposer le port
-EXPOSE 8000
+# 5. Exposer le port Cloud Run
+EXPOSE 8080
 
-# 7. Lancer FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 6. Démarrer FastAPI avec le port fourni par Cloud Run
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
+
