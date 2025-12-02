@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-scikit-learn
 numpy
-xgboost
 pydantic
+xgboost
+scikit-learn
