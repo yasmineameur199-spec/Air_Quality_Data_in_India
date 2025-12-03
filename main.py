@@ -1,18 +1,25 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import numpy as np
 import pickle
 
-# Charger le modèle XGBoost optimisé
+# Charger modèle
 with open("best_xgb_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# Initialiser FastAPI
+# Charger scaler
+with open("scaler.pkl", "rb") as f:
+    scaler = pickle.load(f)
+
+# Charger l'ordre des features
+with open("features.pkl", "rb") as f:
+    FEATURES = pickle.load(f)
+
 app = FastAPI()
 
-# Définir la structure des données envoyées à /predict
+# IMPORTANT : alias pour accepter "PM2.5"
 class InputData(BaseModel):
-    PM2_5: float
+    PM2_5: float = Field(alias="PM2.5")
     PM10: float
     NO: float
     NO2: float
@@ -29,34 +36,34 @@ class InputData(BaseModel):
     mois: float
     jour: float
 
-# Endpoint de test
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+    class Config:
+        allow_population_by_field_name = True   # <- ULTRA IMPORTANT !
+        populate_by_name = True                 # <- Permet d'utiliser les alias
 
-# Endpoint de prédiction
-@app.post("/predict")
+
+class PredictionResponse(BaseModel):
+    prediction: float
+
+@app.post("/predict", response_model=PredictionResponse)
 def predict(input_data: InputData):
+    # TRÈS IMPORTANT :
+    data = input_data.dict(by_alias=True)
 
-    data = np.array([[
-        input_data.PM2_5,
-        input_data.PM10,
-        input_data.NO,
-        input_data.NO2,
-        input_data.NOx,
-        input_data.NH3,
-        input_data.CO,
-        input_data.SO2,
-        input_data.O3,
-        input_data.Benzene,
-        input_data.Toluene,
-        input_data.Xylene,
-        input_data.City_Frequency_Encoded,
-        input_data.annee,
-        input_data.mois,
-        input_data.jour
-    ]])
+    print(">>> DATA RECUE :", data)
 
-    prediction = model.predict(data)[0]
+    # Construire ligne dans le bon ordre
+    row = np.array([[data[col] for col in FEATURES]])
 
-    return {"prediction": float(prediction)}
+    print("ROW BEFORE SCALING:", row)
+
+    # Normalisation
+    row_scaled = scaler.transform(row)
+
+    print("ROW AFTER SCALING:", row_scaled)
+
+    # Prédiction
+    pred = model.predict(row_scaled)[0]
+
+    print("PREDICTION:", pred)
+
+    return {"prediction": float(pred)}
