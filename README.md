@@ -80,6 +80,11 @@ Reçoit un JSON en entrée et retourne la prédiction du modèle ML.
 docker build -t mon_api .
 
 ### 3.2. Lancer le conteneur Docker
+voir si le port est libre 
+docker ps
+docker stop 
+
+
 docker run -p 8080:8080 mon_api
 
 
