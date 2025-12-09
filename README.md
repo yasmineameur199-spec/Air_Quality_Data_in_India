@@ -33,70 +33,103 @@ Log automatique sur MLflow (DagsHub).
 Calcul des métriques : accuracy, precision, recall, f1-score, log-loss.
 
 
-# 1. Exécution de l’API localement
-## 1.1. Installation des dépendances
+# Guide d’exécution et de déploiement – API FastAPI et Modèle ML
 
-Dans un environnement virtuel ou non :
+Ce document décrit étape par étape comment récupérer le projet, exécuter l’API localement, l'utiliser via Docker, comprendre la structure des fichiers, et accéder à la version déployée sur Google Cloud Run.
 
+## 1. Récupération du projet
+### 1.1. Cloner le projet depuis GitHub
+git clone https://github.com/mon_compte/Air_Quality_Data_in_India.git
+cd Air_Quality_Data_in_India
+
+### 1.2. Ouvrir le projet
+
+Ouvrir le dossier dans VS Code ou utiliser un terminal classique.
+
+## 2. Exécution de l’API en local (sans Docker)
+### 2.1. Créer un environnement virtuel (optionnel)
+Windows :
+python -m venv venv
+venv\Scripts\activate
+
+Mac/Linux :
+python3 -m venv venv
+source venv/bin/activate
+
+### 2.2. Installer les dépendances
 pip install -r requirements.txt
 
-## 1.2. Lancer l’API FastAPI
-uvicorn main:app --host 0.0.0.0 --port 8000
+### 2.3. Lancer l’API FastAPI
+uvicorn main:app --host 0.0.0.0 --port 8080
 
-## 1.3. Accéder à l'interface Swagger
-http://localhost:8000/docs
+### 2.4. Accéder à la documentation Swagger
 
+http://localhost:8080/docs
 
-Vous pouvez tester les endpoints :
+### 2.5. Endpoints disponibles
+GET /health
 
-/health (vérification du service)
+Permet de vérifier si le service fonctionne.
 
-/predict (prédiction du modèle ML)
+POST /predict
 
-# 2. Construction et exécution du Docker en local
-2.1. Construire l’image Docker
+Reçoit un JSON en entrée et retourne la prédiction du modèle ML.
+
+## 3. Exécution via Docker
+### 3.1. Construire l’image Docker
 docker build -t mon_api .
 
-## 2.2. Exécuter le conteneur
-docker run -p 8000:8000 mon_api
+### 3.2. Lancer le conteneur Docker
+voir si le port est libre 
+docker ps
+docker stop 
 
 
-L’API sera alors disponible à :
+docker run -p 8080:8080 mon_api
 
-http://localhost:8000/
 
-# 3. Explication des fichiers principaux
+### 3.3. Accéder à l’API Docker
+
+http://localhost:8080
+
+http://localhost:8080/docs
+
+## 4. Explication des fichiers principaux
 Dockerfile
 
-Installe Python et les dépendances
+Le Dockerfile réalise les actions suivantes :
 
-Copie le projet dans l’image
+Installation de Python dans l’image
 
-Lance FastAPI avec Uvicorn
+Installation des dépendances
 
-Expose le port 8000
-Ce fichier permet de créer l’image Docker utilisée en local et sur Google Cloud Run.
+Copie du projet dans l’image
+
+Lancement de FastAPI via Uvicorn
+
+Exposition du port 8000
+
+Il est utilisé pour l’exécution locale et le déploiement sur Google Cloud Run.
 
 requirements.txt
 
-Liste toutes les librairies Python nécessaires :
-FastAPI, Uvicorn, NumPy, Pandas, scikit-learn, xgboost, etc.
+Contient la liste des librairies Python nécessaires : FastAPI, Uvicorn, NumPy, Pandas, scikit-learn, XGBoost, etc.
 
 main.py
 
-Fichier principal contenant l’API FastAPI :
+Fichier principal de l’API FastAPI contenant :
 
-/health → Vérification du service
+La route /health
 
-/predict → Retourne la prédiction
+La route /predict
 
-Charge également le modèle sauvegardé : best_xgb_model.pkl
+Le chargement du modèle best_xgb_model.pkl
 
 best_xgb_model.pkl
 
-Modèle XGBoost optimisé via GridSearchCV et sauvegardé en local.
+Modèle XGBoost optimisé avec GridSearchCV, utilisé pour la prédiction.
 
-# 4. Structure du projet
+## 5. Structure du projet
 Air_Quality_Data_in_India/
 │── main.py
 │── best_xgb_model.pkl
@@ -106,12 +139,11 @@ Air_Quality_Data_in_India/
 │── city_day.csv
 │── Air_Quality_Data_in_India.ipynb
 │── Projet_ia/
-│   
 └── README.md
 
-# 5. Accès à la version en ligne (Google Cloud Run)
+## 6. Accès à la version en ligne (Google Cloud Run)
 
-L’API a été déployée via Google Cloud Run, à partir d’une image Docker stockée dans Artifact Registry.
+L’API a été déployée sur Google Cloud Run à partir d’une image Docker stockée dans Artifact Registry.
 
 URL publique de l’API
 
@@ -121,7 +153,7 @@ Documentation Swagger
 
 https://mon-api-957479726796.us-central1.run.app/docs
 
-Exemple d’appel POST /predict :
+## 7. Exemple d’appel POST /predict
 {
   "PM2_5": 52.3,
   "PM10": 87.1,
@@ -140,34 +172,3 @@ Exemple d’appel POST /predict :
   "mois": 11,
   "jour": 23
 }
-
-# 6.  Erreurs rencontrées et solutions
-Problème : PORT incorrect pour Cloud Run
-
-Cloud Run impose le port 8080.
-✔ Correction :
-
-uvicorn main:app --host 0.0.0.0 --port 8080
-
-Problème : commandes Cloud Run sous Windows
-
-Les commandes multi-lignes avec \ ne fonctionnent pas.
-✔ Solution : entrer toutes les commandes sur une seule ligne.
-
-Problème : conteneur ne démarrait pas
-
-✔ Solution : corriger le Dockerfile pour exposer et utiliser le port correct.
-
-# 7. Conclusion
-
-Ce projet montre une chaîne complète de déploiement IA :
-
-Préparation des données
-
-Entraînement XGBoost
-
-Création d'une API FastAPI
-
-Conteneurisation avec Docker
-
-Déploiement public via Google Cloud Run
