@@ -60,11 +60,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 ### 2.3. Lancer l’API FastAPI
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8080
 
 ### 2.4. Accéder à la documentation Swagger
 
-http://localhost:8000/docs
+http://localhost:8080/docs
 
 ### 2.5. Endpoints disponibles
 GET /health
@@ -84,9 +84,9 @@ docker run -p 8000:8000 mon_api
 
 ### 3.3. Accéder à l’API Docker
 
-http://localhost:8000
+http://localhost:8080
 
-http://localhost:8000/docs
+http://localhost:8080/docs
 
 ## 4. Explication des fichiers principaux
 Dockerfile
